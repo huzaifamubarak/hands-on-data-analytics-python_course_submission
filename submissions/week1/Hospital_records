@@ -1,0 +1,222 @@
+raw_data = """patient_id,name,age,gender,phone,blood_group,diagnosis,temperature,admission_date
+P-001,  AHMAD RAZA  ,34,Male,0321-1234567,A+,Acute febrile illness,38.9C,2024-01-15
+P 002,sara khan,28 years,female ,0333 9876543,B-,Hypertension followup,37.1C,15/01/2024
+P003,BILAL ahmed,51yo,M,0300-1112223,AB+,Diabetes management,99.0F,2024-01-16
+P-004, Zara  Malik ,45 yr old,FEMALE,0321-invalid,O+,Respiratory infection,38.2C,Jan 16 2024
+P005,hassan ALI,67,male,0311-9988776,A-,Post surgical review,99.4F,2024-01-17
+P-006,Nida Butt,39 years,F,0333-1234567,B+,Antenatal care,36.9C,17/01/2024
+P 007,  USMAN sheikh,N/A,Male,0321-5544332,O-,Emergency trauma,104.2F,2024-01-18
+P008,Ayesha Nawaz,31yo,female,0311-abc-1234,AB-,Cardiac arrhythmia,98.6F,18/01/2024
+P-009,Faisal Iqbal,58 years,M,0300-7766554,A+,Chronic kidney disease,37.3C,2024-01-19
+P010,  Mariam Syed  ,22,F,0333-4455667,B+,Thyroid disorder,36.8C,19/01/2024
+P-011,Tariq Mahmood,62yo,MALE,0321-3344556,AB+,Orthopedic pain,37.6C,2024-01-20
+P 012,Sana Mirza,29 years,female ,0311-2233445,O+,Urinary tract infection,100.3F,20/01/2024
+P013,ALI hassan,74,m,0333-1122334,A-,Neurological assessment,98.2F,2024-01-21
+P-014,HINA qureshi,36 yr old,Female,0300-9988776,B-,Skin disorder,37.0C,21/01/2024
+P015, Kamran Rauf ,48 years,male,0321-invalid,O+,Pulmonary embolism,38.8C,2024-01-22
+P-016,Fatima javed,55yo,FEMALE,0311-8877665,A+,Rheumatoid arthritis,101.3F,22/01/2024
+P 017,Omar FAROOQ,41,M,0333-7766554,AB-,Gastroenteritis,38.1C,2024-01-23
+P018,  Rabia shahid  ,26 years,female,0300-6655443,B+,Allergy response,36.7C,23/01/2024
+P-019,Imran khalid,43yr,MALE,0321-0099887,O-,Hypertension followup,37.9C,2024-01-24
+P020,Mehwish Aslam,33,F,0311-invalid,A+,Migraine,101.3F,24/01/2024"""
+
+print("Dataset loaded successfully.")
+print(f"Total characters: {len(raw_data)}")
+lines = raw_data.split("\n")
+header = lines[0].split(",")
+records = lines[1:]
+
+print(f"header: {header}")
+
+
+print(f"\n Total records: ",len(records))
+
+print(f"\n First record: ")
+
+print(records[0])
+
+for line_number, line in enumerate(lines):
+    print(f"Line {line_number:02d}: {line}") # 2d = output formating
+
+header = lines[0]
+records = lines[1:]
+header_fields = header.split(",")
+
+print(f"\n'header fields': {header_fields} ")
+
+print(f"\n Total Patient Records: ",len(records))
+
+for i in range(3):
+    print(f"\n----Record{i+1}-----")
+    values = records[i].split(",")
+    for field, value in zip(header_fields, values):
+         print(f"{field:<15}: {value}") #    <15 = output formating
+#phase 2  _________________________________________________
+import re
+clean_ids = []
+for record in records:
+    fields = record.split(",")
+
+    pid = fields[0]
+    clean_pid = re.sub(r"[^P0-9]","",pid)
+    clean_ids.append(clean_pid)
+    print(f'{clean_ids}')
+
+clean_names = []
+for record in records:
+    fields = record.split(',')
+    name = fields[1]
+
+    clean_name = ' '.join(name.strip().split()).title()
+
+    clean_names.append(clean_name)
+
+
+print(f'\n\n{clean_names}')
+
+
+clean_ages = []
+
+for record in records:
+    fields = record.split(",")
+    age_str = fields[2]
+    match = re.search(r"\d+", age_str)
+
+    if match:
+        clean_ages.append(int(match.group()))
+    else:
+        clean_ages.append(None)
+
+print(f"Clean Ages: {clean_ages}")
+
+missing = clean_ages.count(None)
+
+print("\nMissing Ages:", missing)
+
+ages = [age for age in clean_ages if age != None]
+
+print("Youngest Patient:", min(ages))
+print("Oldest Patient:", max(ages))
+
+clean_genders = []
+
+for record in records:
+    fields = record.split(',')
+    gender = fields[3].strip().lower()
+    if gender.startswith('m'):
+       clean_genders.append('M')
+    else:
+       clean_genders.append('F')
+print(f'clean_genders:  {clean_genders}')
+
+male_count = clean_genders.count('M')
+female_count = clean_genders.count('F')
+
+print(f'\nMales: {male_count} ')
+print(f'Females: {female_count} ')
+
+clean_temps = []
+#99.0
+for record in records:
+    fields = record.split(",")
+    temp = fields[7]
+    unit = temp[-1]
+
+    value = float(temp[:-1])
+
+    if unit == "F":
+        value = (value - 32) * 5 / 9
+
+    value = round(value, 1)
+
+    clean_temps.append(value)
+
+print(f"Temperatures in Celsius: {clean_temps}")
+
+print("\nHighest Temperature:", max(clean_temps), "°C") # max temperature
+print("Lowest Temperature:", min(clean_temps), "°C") # min temperature
+
+#Phase 3 ____________________________________________________________________
+
+import re
+
+valid_phones = []
+invalid_records = []
+
+for record in records:
+    fields = record.split(",")
+
+    patient_id = fields[0].strip()
+    phone = fields[4].strip()
+
+    if re.match(r'^0\d{3}[-\s]\d{7}$', phone):
+        valid_phones.append(phone)
+    else:
+        invalid_records.append(patient_id)
+
+print(f"Valid Phones:{valid_phones}")
+print(f"\nInvalid records:{invalid_records}")
+
+print("\nTotal invalid Records:", len(invalid_records))
+
+import re
+
+invalid_ids = []
+id_numbers = []
+
+for pid in clean_ids:
+
+    match = re.match(r'^P(\d{3})$', pid)
+
+    if match:
+        id_numbers.append(int(match.group(1)))
+    else:
+        invalid_ids.append(pid)
+
+print(f"Invalid IDs:{invalid_ids}")
+if len(invalid_ids) == 0:
+    print("\nYes! Task 2.1 cleaning was robust enough.")
+    print("All 20 cleaned IDs are valid.")
+else:
+    print("\nNo! Some cleaned IDs are still invalid.")
+
+print(f"\nExtracted ID Numbers:{id_numbers}")
+import re
+
+iso_count = 0
+dm_count = 0
+month_count = 0
+
+admission_years = []
+
+for record in records:
+    fields = record.split(",")
+    date = fields[8].strip()
+
+
+    if re.findall(r'\d{4}-\d{2}-\d{2}', date):
+        iso_count += 1
+
+    if re.findall(r'\d{2}/\d{2}/\d{4}', date):
+        dm_count += 1
+
+    if re.findall(r'[A-Za-z]{3}\s+\d{1,2}\s+\d{4}', date):
+        month_count += 1
+
+
+    year = re.search(r'\d{4}', date)
+    if year:
+        admission_years.append(year.group())
+
+print("ISO Format Count:", iso_count)
+print("DD/MM/YYYY Format Count:", dm_count)
+print("Month Name Format Count:", month_count)
+
+print(f"\nAdmission Years:{admission_years}")
+
+
+
+if len(set(admission_years)) == 1:
+    print("\nAll records are from the same year:", admission_years[0])
+else:
+    print("\nRecords contain multiple years.")
